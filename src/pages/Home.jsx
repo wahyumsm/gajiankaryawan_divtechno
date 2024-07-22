@@ -19,9 +19,9 @@ const formatCurrency = (value) => {
 const parseCurrency = (value) => {
   if (typeof value !== "string") return 0;
   // Menghapus prefix dan pemisah ribuan
-  return parseInt(value.replace(/[^0-9]/g, ""), 10) || 0;
+  const numericValue = value.replace(/[^0-9]/g, "");
+  return parseInt(numericValue, 10) || 0;
 };
-
 const App = () => {
   const [data, setData] = useState([]);
   const [currentId, setCurrentId] = useState(null);
@@ -38,15 +38,16 @@ const App = () => {
 
   // Effect untuk mengupdate form data berdasarkan karyawan yang dipilih
   useEffect(() => {
-    if (selectedName) {
-      const selectedData = data.find((item) => item.name === selectedName);
-      if (selectedData) {
-        setFormData({
-          ...selectedData,
-          gajipokok: formatCurrency(selectedData.gajipokok),
-          tunjangan: formatCurrency(selectedData.tunjangan),
-        });
-      }
+    const selectedEmployee = data.find((item) => item.name === selectedName);
+    if (selectedEmployee) {
+      setFormData({
+        id: selectedEmployee.id,
+        name: selectedEmployee.name,
+        gajipokok: formatCurrency(selectedEmployee.gajipokok),
+        tunjangan: formatCurrency(selectedEmployee.tunjangan),
+        jabatan: selectedEmployee.jabatan,
+        tanggalLahir: selectedEmployee.tanggalLahir,
+      });
     } else {
       setFormData({
         id: null,
@@ -58,6 +59,18 @@ const App = () => {
       });
     }
   }, [selectedName, data]);
+
+  // Hitung total gaji
+  const getTotalSalary = () => {
+    const selectedEmployee = data.find((item) => item.name === selectedName);
+    if (selectedEmployee) {
+      const totalSalary =
+        parseCurrency(selectedEmployee.gajipokok) +
+        parseCurrency(selectedEmployee.tunjangan);
+      return formatCurrency(totalSalary);
+    }
+    return "Rp.0";
+  };
 
   // Mengedit data karyawan
   const handleEdit = (item) => {
@@ -75,6 +88,7 @@ const App = () => {
   // Menghapus data karyawan
   const handleDelete = (id) => {
     setData(data.filter((item) => item.id !== id));
+    alert("Data berhasil dihapus!");
   };
 
   // Mengirimkan data formulir
@@ -85,13 +99,14 @@ const App = () => {
       tunjangan: parseCurrency(item.tunjangan),
     };
 
-    console.log("Submitting Form Data:", parsedItem); // Log data yang dikirim
-
     if (item.id) {
       setData(data.map((d) => (d.id === item.id ? parsedItem : d)));
+      alert("Data berhasil diperbarui!");
     } else {
       setData([...data, { ...parsedItem, id: data.length + 1 }]);
+      alert("Data berhasil ditambahkan!");
     }
+
     setFormData({
       id: null,
       name: "",
@@ -214,15 +229,16 @@ const Form = ({ data, onFormSubmit }) => {
   // Mengubah data saat input
   const handleChange = (e) => {
     const { name, value } = e.target;
-    console.log(`Input Change - Name: ${name}, Value: ${value}`); // Log perubahan input
+
     if (name === "gajipokok" || name === "tunjangan") {
-      // Hapus format dan simpan raw value
       const rawValue = parseCurrency(value);
+      console.log(`handleChange - ${name} rawValue:`, rawValue); // Log nilai mentah
       setFormData({
         ...formData,
         [name]: formatCurrency(rawValue),
       });
     } else {
+      console.log(`handleChange - ${name}:`, value); // Log nilai yang diubah
       setFormData({
         ...formData,
         [name]: value,
@@ -233,12 +249,13 @@ const Form = ({ data, onFormSubmit }) => {
   // Mengirimkan formulir
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Form Data Before Submit:", formData); // Log data sebelum dikirim
-    onFormSubmit({
+    const submittedData = {
       ...formData,
-      gajipokok: parseCurrency(formData.gajipokok),
-      tunjangan: parseCurrency(formData.tunjangan),
-    });
+      // gajipokok: parseCurrency(formData.gajipokok),
+      // tunjangan: parseCurrency(formData.tunjangan),
+    };
+    console.log("handleSubmit - submittedData:", submittedData); // Log data yang dikirim
+    onFormSubmit(submittedData);
   };
 
   return (
