@@ -163,8 +163,7 @@ const App = () => {
         </BootstrapForm.Control>
       </BootstrapForm.Group>
       <h2 className="my-4">
-        Total Gaji untuk {selectedName || "karyawan"} akan dihitung saat Anda
-        memilih karyawan.
+        Total Gaji untuk {selectedName || "karyawan"} adalah {getTotalSalary()}.
       </h2>
       <Table striped bordered hover>
         <thead>
